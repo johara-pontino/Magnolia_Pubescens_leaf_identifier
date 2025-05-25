@@ -128,14 +128,15 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import axios from 'axios'
+import { useRuntimeConfig } from '#app'
 
 const selectedFile = ref<File | null>(null)
 const isLoading = ref(false)
 const isUploading = ref(false)
 const message = ref('')
 const isError = ref(false)
+const previewUrl = ref('')
 
-// Use Nuxt 3 runtime config to get the public API base URL
 const config = useRuntimeConfig()
 const baseURL = config.public.apiBase || 'http://localhost:8000'
 
@@ -145,6 +146,7 @@ function handleBeforeUpload(file: File) {
     isError.value = true
     return false
   }
+  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
   selectedFile.value = file
   previewUrl.value = URL.createObjectURL(file)
   message.value = ''
@@ -168,7 +170,7 @@ async function classify() {
     const formData = new FormData()
     formData.append('file', selectedFile.value)
 
-    const response = await axios.post(`${baseURL}/predict`, formData, {
+    const response = await axios.post(`${baseURL}/predict/`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -177,7 +179,8 @@ async function classify() {
     message.value = `Classification Result: ${response.data.label || 'Unknown'}`
     isError.value = false
   } catch (error: any) {
-    message.value = `Error: ${error?.response?.data?.detail || error.message || 'Error during classification. Please try again later.'}`
+    message.value =
+      `Error: ${error?.response?.data?.detail || error.message || 'Error during classification. Please try again later.'}`
     isError.value = true
   } finally {
     isLoading.value = false
@@ -196,10 +199,9 @@ function sendForVerification() {
   isError.value = false
 }
 
-const previewUrl = ref('')
-
 function resetForm() {
   selectedFile.value = null
+  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
   previewUrl.value = ''
   message.value = ''
   isError.value = false
@@ -212,6 +214,7 @@ function downloadImage() {
   link.click()
 }
 </script>
+
 
 
 <style scoped>

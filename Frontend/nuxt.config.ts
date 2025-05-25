@@ -24,7 +24,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      aapiBase: process.env.NUXT_PUBLIC_API_BASE ||  'https://magnolia-pubescens-leaf-identifier.onrender.com',
+      apiBase: process.env.NUXT_PUBLIC_API_BASE ||  'http://localhost:8000',
 
     
     },

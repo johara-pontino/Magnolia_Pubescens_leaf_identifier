@@ -12,8 +12,10 @@ from datetime import datetime
 app = FastAPI()
 
 origins = [
-    "http://localhost:3000",  # frontend dev URL, change if different
-    "https://magnolia-pubescens-leaf-identifier-6s7t-hg8k7kg90.vercel.app",  # your deployed frontend
+    "http://localhost:3000",  # Local dev
+    "https://magnolia-pubescens-leaf-identifier-6s7t-jaypontinos-projects.vercel.app",
+    "https://magnolia-pubescens-leaf-identif-git-9900cb-jaypontinos-projects.vercel.app",
+    "https://magnolia-pubescens-leaf-identifier-6s7t-hhkufosxa.vercel.app",
 ]
 
 app.add_middleware(
