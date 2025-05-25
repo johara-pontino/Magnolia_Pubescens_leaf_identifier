@@ -1,31 +1,58 @@
-import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # disable GPU to avoid CUDA warnings
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import JSONResponse
 from tensorflow.keras.models import load_model as keras_load_model
 from tensorflow.keras.preprocessing import image
 import numpy as np
+import shutil
 import os
 
-def load_model():
-    """Load and return the pre-trained Keras model from file."""
-    model_path = "./resnet50_nilo.h5"
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(f"Model file not found: {model_path}")
-    return keras_load_model(model_path)
+app = FastAPI()
 
-def predict_image(model, image_path):
-    """Predicts class of the image using the given model."""
+# Load model once at startup
+model = keras_load_model("resnet50_nilo.h5")
+
+@app.get("/")
+def read_root():
+    return {"message": "Magnolia Classifier API is live!"}
+
+@app.post("/predict/")
+async def classify_image(file: UploadFile = File(...)):
     try:
-        img = image.load_img(image_path, target_size=(224, 224))
+        temp_path = f"temp_{file.filename}"
+        with open(temp_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        img = image.load_img(temp_path, target_size=(224, 224))
+        img_array = image.img_to_array(img)
+        img_array = np.expand_dims(img_array, axis=0)
+        img_array /= 255.0
+
+        prediction = model.predict(img_array)[0][0]
+        os.remove(temp_path)  # Clean up
+
+        predicted_label = "Nilo" if prediction > 0.5 else "Not Nilo"
+
+        return JSONResponse({
+            "class": predicted_label,
+            "confidence": float(prediction)
+        })
+
     except Exception as e:
-        raise ValueError(f"Error loading image {image_path}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0)
-    img_array = img_array / 255.0  # Normalize
 
-    prediction = model.predict(img_array)[0][0]
-    return {
-        "class": int(prediction > 0.5),
-        "confidence": float(prediction)
-    }
+@app.post("/submit/")
+async def submit_image(file: UploadFile = File(...)):
+    try:
+        save_dir = "submitted_images"
+        os.makedirs(save_dir, exist_ok=True)
 
+        save_path = os.path.join(save_dir, file.filename)
+
+        with open(save_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        return {"message": f"Image '{file.filename}' submitted successfully."}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
