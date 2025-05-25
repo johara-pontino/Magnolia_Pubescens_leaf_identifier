@@ -1,4 +1,7 @@
 import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+import os
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
@@ -10,6 +13,7 @@ import io
 from datetime import datetime
 
 app = FastAPI()
+
 
 origins = [
     "http://localhost:3000",  # Local dev
@@ -26,6 +30,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+def load_model_on_startup():
+    global model
+    model_path = "./resnet50_nilo.h5"
+    model = keras_load_model(model_path)
 # Load model once at startup
 model = None
 label_map = {0: "Nilo", 1: "Not Nilo"}
