@@ -22,9 +22,7 @@
 import { h } from 'vue'
 
 const images = [
-  'leaf1.jpeg',
-  'leaf2.jpeg',
-  'leaf3.jpeg',
+  
   '01.jpg',
   '02.jpg',
   '03.jpg',
