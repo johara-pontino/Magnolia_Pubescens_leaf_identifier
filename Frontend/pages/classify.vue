@@ -5,27 +5,44 @@
       Upload a leaf image to see if it's <em>Magnolia pubescens</em> (Nilo).
     </p>
 
-    <div class="content-grid">
-      <!-- Left Column: Upload & Actions -->
+      <div class="content-grid">
+        <!-- Left Column: Upload & Actions -->
       <div class="upload-section">
-      <a-upload
-        :before-upload="handleBeforeUpload"
-        :show-upload-list="false"
-        accept=".jpg,.jpeg"
-        class="upload-card"
-      >
-        <div class="upload-box">
-          <a-button type="primary" size="large">Choose File</a-button>
-          <p class="upload-note">JPEG or JPG format only</p>
+        <a-upload
+          :before-upload="handleBeforeUpload"
+          :show-upload-list="false"
+          accept=".jpg,.jpeg"
+          class="upload-card"
+          :disabled="isUploading || isLoading"
+        >
+          <div 
+            class="upload-box" 
+            :class="{ 'uploading': isUploading || isLoading }"
+          >
+            <a-button type="primary" size="large" :loading="isUploading || isLoading">
+              Choose File
+            </a-button>
+            <p class="upload-note">JPEG or JPG format only</p>
+          </div>
+        </a-upload>
+
+        <div class="button-group">
+          <a-button
+            :loading="isLoading"
+            type="primary"
+            size="large"
+            @click="classify"
+            :disabled="isUploading || isLoading"
+          >
+            Classify
+          </a-button>
+          <a-button size="large" @click="sendForVerification" :disabled="isUploading || isLoading">
+            Send for Verification
+          </a-button>
         </div>
-      </a-upload>
 
-      <div class="button-group">
-        <a-button type="primary" size="large">Classify</a-button>
-        <a-button size="large">Send for Verification</a-button>
+        <p v-if="message" :class="{ error: isError, success: !isError }">{{ message }}</p>
       </div>
-    </div>
-
 
       <!-- Right Column: Info Section -->
       <div class="info-section">
@@ -72,9 +89,71 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+import axios from 'axios'
+
+const selectedFile = ref<File | null>(null)
+const isLoading = ref(false)
+const isUploading = ref(false) // NEW reactive state for upload progress
+const message = ref('')
+const isError = ref(false)
+
+const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+
 function handleBeforeUpload(file: File) {
-  console.log('Selected file:', file)
-  return false // prevent auto-upload
+  if (!['image/jpeg', 'image/jpg'].includes(file.type)) {
+    message.value = 'Only JPEG/JPG files are allowed.'
+    isError.value = true
+    return false
+  }
+  selectedFile.value = file
+  message.value = ''
+  isError.value = false
+  return false // prevent auto-upload by a-upload
+}
+
+async function classify() {
+  if (!selectedFile.value) {
+    message.value = 'Please select a JPEG or JPG file before classifying.'
+    isError.value = true
+    return
+  }
+
+  isLoading.value = true
+  isUploading.value = true
+  message.value = ''
+  isError.value = false
+
+  try {
+    const formData = new FormData()
+    formData.append('file', selectedFile.value)
+
+    const response = await axios.post(`${baseURL}/predict`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    message.value = `Classification Result: ${response.data.label || 'Unknown'}`
+    isError.value = false
+  } catch (error) {
+    message.value = 'Error during classification. Please try again later.'
+    isError.value = true
+  } finally {
+    isLoading.value = false
+    isUploading.value = false
+  }
+}
+
+function sendForVerification() {
+  if (!selectedFile.value) {
+    message.value = 'Please select a file to send for verification.'
+    isError.value = true
+    return
+  }
+  // Replace with your actual logic to send the file for verification
+  message.value = 'Image sent for verification. Thank you!'
+  isError.value = false
 }
 </script>
 
@@ -86,9 +165,8 @@ function handleBeforeUpload(file: File) {
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-  min-height: 80vh; /* NEW */
+  min-height: 80vh;
 }
-
 
 .title {
   font-size: 28px;
@@ -117,8 +195,8 @@ function handleBeforeUpload(file: File) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* NEW */
-  min-height: 400px; /* Ensures space for vertical centering */
+  justify-content: center;
+  min-height: 400px;
 }
 
 .upload-card {
@@ -139,10 +217,15 @@ function handleBeforeUpload(file: File) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
+  /* transition for smooth visual change */
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-
-
+.upload-box.uploading {
+  border-color: #52c41a; /* Ant Design green */
+  background-color: #f6ffed;
+}
 
 .upload-note {
   font-size: 13px;
@@ -204,6 +287,18 @@ function handleBeforeUpload(file: File) {
   color: #555;
   margin-top: 10px;
   font-size: 13px;
+}
+
+p.success {
+  color: #2e7d32;
+  margin-top: 20px;
+  font-weight: 600;
+}
+
+p.error {
+  color: #d32f2f;
+  margin-top: 20px;
+  font-weight: 600;
 }
 
 /* Responsive behavior */

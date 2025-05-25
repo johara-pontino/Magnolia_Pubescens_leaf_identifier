@@ -22,6 +22,7 @@
     "vue": "latest"
   },
   "devDependencies": {
+    "@types/axios": "^0.9.36",
     "sass": "^1.89.0",
     "vite-tsconfig-paths": "^5.1.4"
   }
