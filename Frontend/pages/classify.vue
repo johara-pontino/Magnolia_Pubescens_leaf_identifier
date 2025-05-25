@@ -5,8 +5,8 @@
       Upload a leaf image to see if it's <em>Magnolia pubescens</em> (Nilo).
     </p>
 
-      <div class="content-grid">
-        <!-- Left Column: Upload & Actions -->
+    <div class="content-grid">
+      <!-- Left Column: Upload & Actions -->
       <div class="upload-section">
         <a-upload
           :before-upload="handleBeforeUpload"
@@ -26,6 +26,12 @@
           </div>
         </a-upload>
 
+        <!-- Image Preview -->
+        <div v-if="previewUrl" class="preview-box">
+          <h3>Preview:</h3>
+          <img :src="previewUrl" alt="Preview" class="preview-image" />
+        </div>
+
         <div class="button-group">
           <a-button
             :loading="isLoading"
@@ -36,12 +42,35 @@
           >
             Classify
           </a-button>
+
           <a-button size="large" @click="sendForVerification" :disabled="isUploading || isLoading">
             Send for Verification
           </a-button>
+
+          <a-button size="large" danger @click="resetForm" :disabled="isUploading || isLoading">
+            Reset
+          </a-button>
         </div>
 
-        <p v-if="message" :class="{ error: isError, success: !isError }">{{ message }}</p>
+        <!-- Result Alert -->
+        <a-alert
+          v-if="message"
+          :type="isError ? 'error' : 'success'"
+          :message="message"
+          show-icon
+          class="result-alert"
+        />
+
+        <!-- Download Result Button -->
+        <a-button
+          v-if="message && !isError && previewUrl"
+          type="default"
+          size="large"
+          @click="downloadImage"
+          class="download-btn"
+        >
+          Download Image & Result
+        </a-button>
       </div>
 
       <!-- Right Column: Info Section -->
@@ -85,8 +114,16 @@
         </div>
       </div>
     </div>
+
+    <!-- Global loading overlay -->
+    <a-spin
+      v-if="isUploading || isLoading"
+      size="large"
+      class="loading-overlay"
+    />
   </div>
 </template>
+
 
 <script setup lang="ts">
 import { ref } from 'vue'
@@ -94,11 +131,13 @@ import axios from 'axios'
 
 const selectedFile = ref<File | null>(null)
 const isLoading = ref(false)
-const isUploading = ref(false) // NEW reactive state for upload progress
+const isUploading = ref(false)
 const message = ref('')
 const isError = ref(false)
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+// Use Nuxt 3 runtime config to get the public API base URL
+const config = useRuntimeConfig()
+const baseURL = config.public.apiBase || 'http://localhost:8000'
 
 function handleBeforeUpload(file: File) {
   if (!['image/jpeg', 'image/jpg'].includes(file.type)) {
@@ -107,9 +146,10 @@ function handleBeforeUpload(file: File) {
     return false
   }
   selectedFile.value = file
+  previewUrl.value = URL.createObjectURL(file)
   message.value = ''
   isError.value = false
-  return false // prevent auto-upload by a-upload
+  return false
 }
 
 async function classify() {
@@ -130,14 +170,14 @@ async function classify() {
 
     const response = await axios.post(`${baseURL}/predict`, formData, {
       headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+        'Content-Type': 'multipart/form-data',
+      },
     })
 
     message.value = `Classification Result: ${response.data.label || 'Unknown'}`
     isError.value = false
-  } catch (error) {
-    message.value = 'Error during classification. Please try again later.'
+  } catch (error: any) {
+    message.value = `Error: ${error?.response?.data?.detail || error.message || 'Error during classification. Please try again later.'}`
     isError.value = true
   } finally {
     isLoading.value = false
@@ -151,11 +191,28 @@ function sendForVerification() {
     isError.value = true
     return
   }
-  // Replace with your actual logic to send the file for verification
+  // Implement your actual verification logic here
   message.value = 'Image sent for verification. Thank you!'
   isError.value = false
 }
+
+const previewUrl = ref('')
+
+function resetForm() {
+  selectedFile.value = null
+  previewUrl.value = ''
+  message.value = ''
+  isError.value = false
+}
+
+function downloadImage() {
+  const link = document.createElement('a')
+  link.href = previewUrl.value
+  link.download = 'classified_leaf.jpg'
+  link.click()
+}
 </script>
+
 
 <style scoped>
 .classify-container {
@@ -313,4 +370,46 @@ p.error {
     max-width: 100%;
   }
 }
+
+.preview-box {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.preview-box h3 {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.preview-image {
+  max-width: 300px;
+  max-height: 300px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+.result-alert {
+  margin-top: 20px;
+  width: 100%;
+  max-width: 360px;
+}
+
+.download-btn {
+  margin-top: 12px;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
 </style>
