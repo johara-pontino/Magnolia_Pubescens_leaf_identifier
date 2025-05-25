@@ -17,10 +17,6 @@ app.add_middleware(
 
 model = load_model()
 
-@app.get("/")
-async def root():
-    return {"status": "API is running"}
-
 @app.post("/predict")
 async def classify_leaf(file: UploadFile = File(...)):
     filepath = save_upload_file(file)
