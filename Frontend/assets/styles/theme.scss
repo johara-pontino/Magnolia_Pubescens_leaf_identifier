@@ -1,0 +1,61 @@
+@use 'sass:color';
+
+:root {
+  --primary-green: #2E7D32;
+  --secondary-green: #A5D6A7;
+  --accent-yellow: #F9A825;
+  --background: #FAFAFA;
+  --text-color: #333333;
+  --surface-box: #E8F5E9;
+  --error-alert: #D32F2F;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-color);
+}
+
+a {
+  color: var(--primary-green);
+}
+
+.ant-layout {
+  background: var(--background) !important;
+}
+
+.ant-layout-header {
+  background: var(--primary-green) !important;
+}
+
+.ant-menu {
+  background-color: var(--primary-green) !important;
+}
+
+.ant-menu-item-selected {
+  background-color: var(--secondary-green) !important;
+}
+
+.ant-btn-primary {
+  background-color: var(--primary-green);
+  border-color: var(--primary-green);
+}
+
+.ant-btn-primary:hover {
+  background-color: color.adjust(#2E7D32, $lightness: -10%);
+  border-color: color.adjust(#2E7D32, $lightness: -10%);
+}
+
+.ant-card {
+  background-color: var(--surface-box);
+}
+
+.upload-button {
+  background-color: var(--accent-yellow);
+  color: white;
+  border: none;
+}
+
+html, body, #__nuxt {
+  margin: 0;
+  height: 100%;
+}
