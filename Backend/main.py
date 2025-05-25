@@ -1,58 +1,42 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 from tensorflow.keras.models import load_model as keras_load_model
 from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications.resnet50 import preprocess_input
 import numpy as np
-import shutil
-import os
+import io
 
 app = FastAPI()
 
 # Load model once at startup
-model = keras_load_model("resnet50_nilo.h5")
+model = None
+label_map = {0: "Nilo", 1: "Not Nilo"}
 
-@app.get("/")
-def read_root():
-    return {"message": "Magnolia Classifier API is live!"}
+@app.on_event("startup")
+def load_model_on_startup():
+    global model
+    model_path = "./resnet50_nilo.h5"
+    model = keras_load_model(model_path)
 
 @app.post("/predict/")
-async def classify_image(file: UploadFile = File(...)):
+async def predict(file: UploadFile = File(...)):
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Invalid image file")
+
+    contents = await file.read()
     try:
-        temp_path = f"temp_{file.filename}"
-        with open(temp_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-
-        img = image.load_img(temp_path, target_size=(224, 224))
-        img_array = image.img_to_array(img)
-        img_array = np.expand_dims(img_array, axis=0)
-        img_array /= 255.0
-
-        prediction = model.predict(img_array)[0][0]
-        os.remove(temp_path)  # Clean up
-
-        predicted_label = "Nilo" if prediction > 0.5 else "Not Nilo"
-
-        return JSONResponse({
-            "class": predicted_label,
-            "confidence": float(prediction)
-        })
-
+        img = image.load_img(io.BytesIO(contents), target_size=(224, 224))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=400, detail="Error loading image")
 
+    img_array = image.img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0)
+    img_array = preprocess_input(img_array)  # Important! Use the same preprocessing as training
 
-@app.post("/submit/")
-async def submit_image(file: UploadFile = File(...)):
-    try:
-        save_dir = "submitted_images"
-        os.makedirs(save_dir, exist_ok=True)
+    prediction = model.predict(img_array)[0][0]
+    predicted_label = label_map[int(prediction > 0.5)]
 
-        save_path = os.path.join(save_dir, file.filename)
-
-        with open(save_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-
-        return {"message": f"Image '{file.filename}' submitted successfully."}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return JSONResponse({
+        "label": predicted_label,
+        "probability": float(prediction)
+    })
