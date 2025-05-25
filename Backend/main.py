@@ -1,4 +1,5 @@
 import os
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 from tensorflow.keras.models import load_model as keras_load_model
@@ -9,6 +10,19 @@ import io
 from datetime import datetime
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:3000",  # frontend dev URL, change if different
+    "https://magnolia-pubescens-leaf-identifier-6s7t-hg8k7kg90.vercel.app",  # your deployed frontend
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,       # allow frontend URLs here
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Load model once at startup
 model = None
