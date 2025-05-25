@@ -1,10 +1,12 @@
 import os
-from uuid import uuid4
+import uuid
 
 def save_upload_file(upload_file):
-    filename = f"temp_{uuid4().hex}.jpg"
-    file_path = f"temp/{filename}"
-    os.makedirs("temp", exist_ok=True)
-    with open(file_path, "wb") as buffer:
-        buffer.write(upload_file.file.read())
-    return file_path
+    ext = os.path.splitext(upload_file.filename)[1]
+    unique_name = f"{uuid.uuid4().hex}{ext}"
+    folder = "temp_uploads"
+    os.makedirs(folder, exist_ok=True)
+    path = os.path.join(folder, unique_name)
+    with open(path, "wb") as f:
+        f.write(upload_file.file.read())
+    return path
