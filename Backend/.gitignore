@@ -22,3 +22,19 @@ logs
 .env
 .env.*
 !.env.example
+
+# .gitignore
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.dll
+*.so
+*.dylib
+*.exe
+*.zip
+*.tar.gz
+*.egg-info/
+
+
