@@ -5,100 +5,102 @@
       Upload a leaf image to see if it's <em>Magnolia pubescens</em> (Nilo).
     </p>
 
-    <div class="upload-preview-row">
-      <div class="upload-box-wrapper">
-        <a-upload
-          :before-upload="handleBeforeUpload"
-          :show-upload-list="false"
-          accept=".jpg,.jpeg"
-          class="upload-card"
-          :disabled="isUploading || isLoading"
-        >
-          <div
-            class="upload-box"
-            :class="{ 'uploading': isUploading || isLoading }"
-          >
-            <a-button type="primary" size="large" :loading="isUploading || isLoading">
-              Choose File
-            </a-button>
-            <p class="upload-note">JPEG or JPG format only</p>
-          </div>
-        </a-upload>
-      </div>
+    <div class="main-content">
+      <!-- LEFT: Info Cards -->
+      <div class="info-section">
+        <div class="info-card">
+          <h2>🟢 How Classification Works</h2>
+          <p>
+            When you click <strong>Classify</strong>, your image is analyzed using a ResNet-50 AI model.
+            It detects leaf patterns and compares them with verified <em>Magnolia pubescens</em> (Nilo) images.
+          </p>
+        </div>
 
-      <div class="preview-box-wrapper" v-if="previewUrl">
-        <div class="preview-box">
-          <h3>Preview:</h3>
-          <img :src="previewUrl" alt="Preview" class="preview-image" />
+        <div class="info-card">
+          <h2>📤 How "Send for Verification" Works</h2>
+          <p>
+            Not confident with the result? Click <strong>Send for Verification</strong> to send your image to the dev team
+            for manual review and possible dataset inclusion.
+          </p>
+        </div>
+
+        <div class="info-card warning">
+          <h2>🚫 Image Upload Rules & Restrictions</h2>
+          <p><strong>✅ Before uploading, make sure to:</strong></p>
+          <ul>
+            <li><strong>File Format:</strong> JPEG or JPG only</li>
+            <li><strong>One Leaf Only:</strong> Avoid multiple leaves</li>
+            <li><strong>Clear Background:</strong> Use plain white, soil, or cardboard</li>
+            <li><strong>Good Lighting:</strong> Natural or bright light is best</li>
+            <li><strong>Centered Leaf:</strong> Flat, centered, fully visible</li>
+          </ul>
+          <p><strong>⚠️ Submissions may be rejected if:</strong></p>
+          <ul>
+            <li>Blurry, dark, or overexposed images</li>
+            <li>Multiple leaves or other objects</li>
+            <li>Wrong file format</li>
+            <li>Leaf is cropped or unclear</li>
+          </ul>
+          <p class="tip">
+            Following these tips improves accuracy and helps train the model!
+          </p>
         </div>
       </div>
-    </div>
 
-    <div class="button-group">
-      <a-button
-        :loading="isLoading"
-        type="primary"
-        size="large"
-        @click="classify"
-        :disabled="isUploading || isLoading"
-      >
-        Classify
-      </a-button>
+      <!-- RIGHT: Upload + Preview -->
+      <div class="upload-section">
+        <div class="upload-content">
+          <a-upload
+            :before-upload="handleBeforeUpload"
+            :show-upload-list="false"
+            accept=".jpg,.jpeg"
+            class="upload-card"
+            :disabled="isUploading || isLoading"
+          >
+            <div
+              class="upload-box"
+              :class="{ 'uploading': isUploading || isLoading }"
+            >
+              <a-button type="primary" size="large" :loading="isUploading || isLoading">
+                Choose File
+              </a-button>
+              <p class="upload-note">JPEG or JPG format only</p>
+            </div>
+          </a-upload>
 
-      <a-button size="large" @click="sendForVerification" :disabled="isUploading || isLoading">
-        Send for Verification
-      </a-button>
+          <div class="preview-box" v-if="previewUrl">
+            <h3>Preview:</h3>
+            <img :src="previewUrl" alt="Preview" class="preview-image" />
+          </div>
 
-      <a-button size="large" danger @click="resetForm" :disabled="isUploading || isLoading">
-        Reset
-      </a-button>
-    </div>
+          <div class="button-group">
+            <a-button
+              :loading="isLoading"
+              type="primary"
+              size="large"
+              @click="classify"
+              :disabled="isUploading || isLoading"
+            >
+              Classify
+            </a-button>
 
-    <a-alert
-      v-if="message"
-      :type="isError ? 'error' : 'success'"
-      :message="message"
-      show-icon
-      class="result-alert"
-    />
+            <a-button size="large" @click="sendForVerification" :disabled="isUploading || isLoading">
+              Send for Verification
+            </a-button>
 
-    <div class="info-section">
-      <div class="info-card">
-        <h2>🟢 How Classification Works</h2>
-        <p>
-          When you click <strong>Classify</strong>, your image is analyzed instantly using a ResNet-50 based AI model.
-          It detects leaf patterns and compares them with verified <em>Magnolia pubescens</em> (Nilo) images.
-        </p>
-      </div>
+            <a-button size="large" danger @click="resetForm" :disabled="isUploading || isLoading">
+              Reset
+            </a-button>
+          </div>
 
-      <div class="info-card">
-        <h2>📤 How "Send for Verification" Works</h2>
-        <p>
-          Not confident with the result? Click <strong>Send for Verification</strong> and your image will be sent to the dev team
-          for manual review and potential dataset inclusion. You'll get a confirmation when received.
-        </p>
-      </div>
-
-      <div class="info-card warning">
-        <h2>🚫 Image Upload Rules & Restrictions</h2>
-        <p><strong>✅ Before uploading, make sure to:</strong></p>
-        <ul>
-          <li><strong>File Format:</strong> JPEG or JPG only</li>
-          <li><strong>One Leaf Only:</strong> Avoid multiple leaves</li>
-          <li><strong>Clear Background:</strong> Use white paper, soil, or plain cardboard</li>
-          <li><strong>Good Lighting:</strong> Natural or bright lighting is ideal</li>
-          <li><strong>Centered Leaf:</strong> Keep the leaf flat, centered, and visible</li>
-        </ul>
-        <p><strong>⚠️ Submissions may be rejected if:</strong></p>
-        <ul>
-          <li>Blurry, dark, or overexposed images</li>
-          <li>Multiple leaves or objects present</li>
-          <li>Wrong file format (not JPEG/JPG)</li>
-          <li>Leaf is cropped or hidden</li>
-        </ul>
-        <p class="tip">
-          Following these rules ensures better classification and helps improve the model!
-        </p>
+          <a-alert
+            v-if="message"
+            :type="isError ? 'error' : 'success'"
+            :message="message"
+            show-icon
+            class="result-alert"
+          />
+        </div>
       </div>
     </div>
 
@@ -225,43 +227,65 @@ function resetForm() {
 
 <style scoped>
 .classify-container {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 40px auto;
   padding: 30px;
-  background: #fff;
+  background: #F3EDE3;
   border-radius: 16px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-  min-height: 80vh;
 }
 
 .title {
   font-size: 28px;
   font-weight: 700;
   text-align: center;
-  color: #2e7d32;
+  color: #18442A;
 }
 
 .subtitle {
   text-align: center;
-  color: #555;
+  color: #45644A;
   font-size: 15px;
   margin-bottom: 32px;
 }
 
-/* Upload + preview container side by side */
-.upload-preview-row {
+.main-content {
   display: flex;
-  gap: 30px;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 32px;
+  flex-direction: row; /* Side by side layout */
+  gap: 40px;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: nowrap; /* Prevent stacking */
 }
 
-.upload-box-wrapper,
-.preview-box-wrapper {
-  flex: 1 1 300px;
-  max-width: 320px;
+.info-section {
+  flex: 1 1 60%;
+  min-width: 400px;
+  max-width: 700px;
+  padding-right: 20px;
+  margin-right: 20px;
+  margin-top: 50px;
+}
+
+.upload-section {
+  flex: 1 1 40%;
+  min-width: 300px;
+  max-width: 400px;
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+
+/* The actual content inside the right column */
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  width: 100%;
+  max-width: 280px;
 }
 
 .upload-card {
@@ -272,32 +296,28 @@ function resetForm() {
 .upload-box {
   width: 224px;
   height: 224px;
-  border: 2px dashed #ccc;
+  border: 2px dashed #45644A;
   border-radius: 12px;
-  background: #f8f8f8;
-
+  background: #E4DBC4;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
-  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .upload-note {
   font-size: 13px;
-  color: #777;
+  color: #555;
   margin-top: 8px;
   text-align: center;
   line-height: 1.2;
 }
 
-
 .preview-box {
-  border: 2px dashed #ccc;
+  border: 2px dashed #45644A;
   border-radius: 12px;
   padding: 20px;
-  background: #f8f8f8;
+  background: #E4DBC4;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -306,7 +326,7 @@ function resetForm() {
 
 .preview-box h3 {
   font-size: 16px;
-  color: #333;
+  color: #18442A;
   margin-bottom: 10px;
 }
 
@@ -321,27 +341,22 @@ function resetForm() {
 .button-group {
   display: flex;
   gap: 16px;
-  margin-bottom: 32px;
   justify-content: center;
   flex-wrap: wrap;
 }
 
-.info-section {
-  margin-top: 20px;
-}
-
 .info-card {
-  background-color: #f9f9f9;
+  background-color: #fff;
   padding: 20px 24px;
   border-radius: 10px;
-  border-left: 5px solid #2e7d32;
-  box-shadow: 0 3px 10px rgb(46 125 50 / 0.12);
-  margin-bottom: 20px;
+  border-left: 5px solid #18442A;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
   color: #333;
+  margin-bottom: 16px;
 }
 
 .info-card.warning {
-  border-color: #d32f2f;
+  border-color: #a00000;
   background-color: #fff0f0;
   color: #a00000;
 }
@@ -364,13 +379,7 @@ function resetForm() {
 }
 
 .result-alert {
-  max-width: 700px;
-  margin: 0 auto 24px;
-}
-
-.download-btn {
-  display: block;
-  margin: 0 auto 40px;
+  max-width: 100%;
 }
 
 .loading-overlay {
@@ -387,12 +396,18 @@ function resetForm() {
 }
 
 @media (max-width: 768px) {
-  .upload-preview-row {
+  .main-content {
     flex-direction: column;
   }
-  .upload-box-wrapper,
-  .preview-box-wrapper {
+
+  .upload-section {
+    justify-content: flex-start;
+    align-items: stretch;
+  }
+
+  .upload-content {
     max-width: 100%;
   }
 }
+
 </style>
