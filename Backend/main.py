@@ -1,7 +1,6 @@
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-import os
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
@@ -14,9 +13,9 @@ from datetime import datetime
 
 app = FastAPI()
 
-
+# Allow frontend access
 origins = [
-    "http://localhost:3000",  # Local dev
+    "http://localhost:3000",
     "https://magnolia-pubescens-leaf-identifier-6s7t-jaypontinos-projects.vercel.app",
     "https://magnolia-pubescens-leaf-identif-git-9900cb-jaypontinos-projects.vercel.app",
     "https://magnolia-pubescens-leaf-identifier-6s7t-hhkufosxa.vercel.app",
@@ -24,18 +23,13 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,       # allow frontend URLs here
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.on_event("startup")
-def load_model_on_startup():
-    global model
-    model_path = "./resnet50_nilo.h5"
-    model = keras_load_model(model_path)
-# Load model once at startup
+# Globals
 model = None
 label_map = {0: "Nilo", 1: "Not Nilo"}
 
@@ -44,6 +38,10 @@ def load_model_on_startup():
     global model
     model_path = "./resnet50_nilo.h5"
     model = keras_load_model(model_path)
+
+@app.get("/")
+def read_root():
+    return {"message": "API is running!"}
 
 @app.post("/predict/")
 async def predict(file: UploadFile = File(...)):
@@ -75,11 +73,9 @@ async def submit_image(file: UploadFile = File(...)):
 
     contents = await file.read()
 
-    # Ensure directory exists
     save_dir = "submitted_images"
     os.makedirs(save_dir, exist_ok=True)
 
-    # Create a unique filename: timestamp + original filename
     timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S%f")
     filename = f"{timestamp}_{file.filename}"
     file_path = os.path.join(save_dir, filename)
