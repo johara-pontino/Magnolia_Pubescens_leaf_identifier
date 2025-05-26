@@ -7,13 +7,13 @@ from fastapi.responses import JSONResponse
 from tensorflow.keras.models import load_model as keras_load_model
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.resnet50 import preprocess_input
+from tensorflow.keras.backend import clear_session
 import numpy as np
 import io
 from datetime import datetime
 
 app = FastAPI()
 
-# Allow frontend access
 origins = [
     "http://localhost:3000",
     "https://magnolia-pubescens-leaf-identifier-6s7t-jaypontinos-projects.vercel.app",
@@ -29,7 +29,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Globals
 model = None
 label_map = {0: "Nilo", 1: "Not Nilo"}
 
@@ -54,17 +53,20 @@ async def predict(file: UploadFile = File(...)):
     except Exception:
         raise HTTPException(status_code=400, detail="Error loading image")
 
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0)
-    img_array = preprocess_input(img_array)
+    try:
+        img_array = image.img_to_array(img)
+        img_array = np.expand_dims(img_array, axis=0)
+        img_array = preprocess_input(img_array)
 
-    prediction = model.predict(img_array)[0][0]
-    predicted_label = label_map[int(prediction > 0.5)]
+        prediction = model.predict(img_array)[0][0]
+        predicted_label = label_map[int(prediction > 0.5)]
 
-    return JSONResponse({
-        "label": predicted_label,
-        "probability": float(prediction)
-    })
+        return JSONResponse({
+            "label": predicted_label,
+            "probability": float(prediction)
+        })
+    finally:
+        clear_session()
 
 @app.post("/submit/")
 async def submit_image(file: UploadFile = File(...)):
