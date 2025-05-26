@@ -1,6 +1,5 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-
+import requests
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
@@ -11,7 +10,6 @@ from tensorflow.keras.backend import clear_session
 import numpy as np
 import io
 from datetime import datetime
-import requests
 
 app = FastAPI()
 
@@ -33,44 +31,30 @@ app.add_middleware(
 model = None
 label_map = {0: "Nilo", 1: "Not Nilo"}
 
-MODEL_PATH = "./Backend/model/resnet50_nilo.h5"
-MODEL_DRIVE_ID = "18kZjv_7XU2nGW6UmIy0fRnKeJEXrWgMy"
+MODEL_PATH = "./Backend/resnet50_nilo.h5"
+# Google Drive direct download URL format (use "uc?export=download&id=" + file_id)
+MODEL_DOWNLOAD_URL = "https://drive.google.com/uc?export=download&id=18kZjv_7XU2nGW6UmIy0fRnKeJEXrWgMy"
 
-def download_file_from_google_drive(id: str, destination: str):
-    URL = "https://docs.google.com/uc?export=download"
-
-    session = requests.Session()
-
-    response = session.get(URL, params={'id': id}, stream=True)
-    token = None
-
-    for key, value in response.cookies.items():
-        if key.startswith('download_warning'):
-            token = value
-            break
-
-    if token:
-        params = {'id': id, 'confirm': token}
-        response = session.get(URL, params=params, stream=True)
-
-    with open(destination, "wb") as f:
-        for chunk in response.iter_content(32768):
-            if chunk:
-                f.write(chunk)
+def download_model_if_missing():
+    if not os.path.exists(MODEL_PATH):
+        print(f"Model file not found at {MODEL_PATH}, downloading from Google Drive...")
+        os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
+        try:
+            response = requests.get(MODEL_DOWNLOAD_URL)
+            response.raise_for_status()
+            with open(MODEL_PATH, "wb") as f:
+                f.write(response.content)
+            print("Model downloaded successfully.")
+        except Exception as e:
+            print(f"Failed to download model: {e}")
+            raise RuntimeError("Cannot download model file")
 
 @app.on_event("startup")
 def load_model_on_startup():
     global model
-    if not os.path.exists(MODEL_PATH):
-        print("Model file not found locally. Downloading...")
-        os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
-        download_file_from_google_drive(MODEL_DRIVE_ID, MODEL_PATH)
-        print("Model downloaded successfully.")
-    else:
-        print("Model file found locally.")
-
+    download_model_if_missing()
     model = keras_load_model(MODEL_PATH)
-    print("Model loaded successfully.")
+    print("Model loaded into memory.")
 
 @app.get("/")
 def read_root():
