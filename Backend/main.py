@@ -26,7 +26,10 @@ app.add_middleware(
 )
 
 # === MODEL CONFIGURATION ===
-MODEL_PATH = os.path.join("Backend", "model", "resnet50_nilo.h5")
+# Fixing model path relative to current working directory
+MODEL_PATH = os.path.abspath(os.path.join("model", "resnet50_nilo.h5"))
+print(f"Checking model path: {MODEL_PATH}")
+
 label_map = {0: "Nilo", 1: "Not Nilo"}
 
 model = None
@@ -69,7 +72,7 @@ async def predict(file: UploadFile = File(...)):
             "probability": float(prediction)
         })
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Prediction failed")
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
     finally:
         clear_session()
 

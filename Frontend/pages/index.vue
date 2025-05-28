@@ -25,7 +25,7 @@
         </a-collapse-panel>
 
         <a-collapse-panel key="2" header="🌍 Geographic Distribution and Habitat">
-          <p><i>Magnolia pubescens</i> is a <b>rare endemic</b> of <b>Lanao del Sur</b>, thriving in tropical montane forests.</p>
+          <p><i>Magnolia pubescens</i> is a <b>rare endemic</b> of <b>MINDANAO: Bukidnon, Davao, Davao del Sur, Lanao del Sur, South Cotabato, Surigao del Sur</b>, thriving in tropical montane forests.</p>
           <a-image src="/leaves/leaf2.jpeg" width="200" />
         </a-collapse-panel>
 
@@ -33,14 +33,14 @@
           <ul>
             <li><b>Leaves:</b> Large, leathery, with a hairy underside.</li>
             <li><b>Flowers:</b> Likely large and aromatic.</li>
-            <li><b>Tree Form:</b> Medium-sized with a broad canopy.</li>
+            <li><b>Tree Form:</b> Large-sized with a broad canopy.</li>
           </ul>
         </a-collapse-panel>
 
         <a-collapse-panel key="4" header="🛡️ Conservation Status">
           <p>Currently <b>Data Deficient</b> in IUCN, but likely endangered due to habitat loss and lack of protection.</p>
           <ul>
-            <li>Logging and agriculture</li>
+            <li>Craftmanships</li>
             <li>No targeted conservation policies</li>
             <li>Low public awareness</li>
           </ul>

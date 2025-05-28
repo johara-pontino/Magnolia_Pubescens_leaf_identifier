@@ -115,7 +115,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import axios from 'axios'
-import { useRuntimeConfig } from '#app'
+import { useRuntimeConfig } from 'nuxt/app'
 
 const selectedFile = ref<File | null>(null)
 const isLoading = ref(false)
@@ -125,7 +125,7 @@ const isError = ref(false)
 const previewUrl = ref('')
 
 const config = useRuntimeConfig()
-const baseURL = config.public.apiBase || 'http://localhost:8000'
+const baseURL =  'http://localhost:8000'
 
 function resizeImage(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
