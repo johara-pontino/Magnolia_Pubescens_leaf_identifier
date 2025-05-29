@@ -124,8 +124,10 @@ const message = ref('')
 const isError = ref(false)
 const previewUrl = ref('')
 
+
 const config = useRuntimeConfig()
-const baseURL =  'http://localhost:8000'
+const baseURL = config.public.apiBase
+
 
 function resizeImage(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
