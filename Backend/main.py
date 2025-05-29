@@ -15,6 +15,7 @@ app = FastAPI()
 # Allow frontend access (edit or add URLs if needed)
 origins = [
     "http://localhost:3000",
+    "https://magnolia-pubescens-leaf-identifier-alpha.vercel.app",
 ]
 
 app.add_middleware(
