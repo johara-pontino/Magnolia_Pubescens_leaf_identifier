@@ -16,6 +16,7 @@ app = FastAPI()
 origins = [
     "http://localhost:3000",
     "https://magnolia-pubescens-leaf-identifier-alpha.vercel.app",
+    "https://magnolia-pubescens-leaf-identifier-r5uwf9alg.vercel.app",
 ]
 
 app.add_middleware(
