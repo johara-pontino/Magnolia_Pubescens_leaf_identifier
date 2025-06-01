@@ -17,10 +17,10 @@
         </div>
 
         <div class="info-card">
-          <h2>📤 How "Send for Verification" Works</h2>
+          <h2>📤 How "Send Image" Works</h2>
           <p>
-            Not confident with the result? Click <strong>Send for Verification</strong> to send your image to the dev team
-            for manual review and possible dataset inclusion.
+            Want to contribute an Image? Click <strong>Send image</strong> to send your image to the dev team
+            for addition database for a more accuracy.
           </p>
         </div>
 
@@ -85,7 +85,7 @@
             </a-button>
 
             <a-button size="large" @click="Contributeimage" :disabled="isUploading || isLoading">
-              Send for Verification
+              Send Image
             </a-button>
 
             <a-button size="large" danger @click="resetForm" :disabled="isUploading || isLoading">
