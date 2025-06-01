@@ -84,7 +84,7 @@
               Classify
             </a-button>
 
-            <a-button size="large" @click="sendForVerification" :disabled="isUploading || isLoading">
+            <a-button size="large" @click="Contributeimage" :disabled="isUploading || isLoading">
               Send for Verification
             </a-button>
 
@@ -146,7 +146,7 @@ function resizeImage(file: File): Promise<Blob> {
       canvas.toBlob(blob => {
         if (!blob) return reject('Canvas toBlob failed')
         resolve(blob)
-      }, 'image/jpeg', 0.9)
+      }, 'image/jpeg', 0.6)
     }
     img.onerror = reject
     img.src = url
@@ -208,13 +208,13 @@ async function classify() {
   }
 }
 
-function sendForVerification() {
+function Contributeimage() {
   if (!selectedFile.value) {
-    message.value = 'Please select a file to send for verification.'
+    message.value = 'Please select a file to send.'
     isError.value = true
     return
   }
-  message.value = 'Image sent for verification. Thank you!'
+  message.value = 'Image sent. Thank you for helping our database Grow!'
   isError.value = false
 }
 
