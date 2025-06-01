@@ -208,14 +208,34 @@ async function classify() {
   }
 }
 
-function Contributeimage() {
+const Contributeimage = async () => {
   if (!selectedFile.value) {
     message.value = 'Please select a file to send.'
     isError.value = true
     return
   }
-  message.value = 'Image sent. Thank you for helping our database Grow!'
+
+  isLoading.value = true
   isError.value = false
+  message.value = ''
+
+  try {
+    const formData = new FormData()
+    formData.append('file', selectedFile.value)
+
+    await axios.post(`${baseURL}/submit/`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+
+    message.value = 'Image sent. Thank you for helping our database grow!'
+  } catch (error: any) {
+    message.value = `Failed to send image: ${error?.response?.data?.detail || error.message}`
+    isError.value = true
+  } finally {
+    isLoading.value = false
+  }
 }
 
 function resetForm() {
